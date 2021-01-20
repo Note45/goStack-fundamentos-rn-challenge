@@ -31,25 +31,94 @@ const CartProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function loadProducts(): Promise<void> {
-      const apiResponse: Product[] = await (await api.get('/products')).data;
+      const savedProducts = await AsyncStorage.getItem('@GoStack:products');
 
-      setProducts(apiResponse);
+      if (savedProducts) {
+        setProducts(JSON.parse(savedProducts));
+      }
     }
 
     loadProducts();
   }, []);
 
-  const addToCart = useCallback(async product => {
-    // TODO ADD A NEW ITEM TO THE CART
-  }, []);
+  const addToCart = useCallback(
+    async (product: Omit<Product, 'quantity'>) => {
+      let isProductSaved = false;
 
-  const increment = useCallback(async id => {
-    // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+      const changedProduct = products.map(savedProduct => {
+        if (savedProduct.id === product.id) {
+          isProductSaved = true;
 
-  const decrement = useCallback(async id => {
-    // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+          return {
+            ...savedProduct,
+            quantity: savedProduct.quantity + 1,
+          };
+        }
+
+        return savedProduct;
+      });
+
+      if (!isProductSaved) {
+        setProducts([...changedProduct, { ...product, quantity: 0 }]);
+        return;
+      }
+
+      setProducts(changedProduct);
+    },
+    [products],
+  );
+
+  const increment = useCallback(
+    async id => {
+      const changedProduct = products.map(savedProduct => {
+        if (savedProduct.id === id) {
+          return {
+            ...savedProduct,
+            quantity: savedProduct.quantity + 1,
+          };
+        }
+
+        return savedProduct;
+      });
+
+      setProducts(changedProduct);
+    },
+    [products],
+  );
+
+  const decrement = useCallback(
+    async id => {
+      let isQuantityZeroAndIndexElement = {
+        index: -1,
+        isZero: false,
+      };
+
+      let changedProduct = products.map((savedProduct, index) => {
+        if (savedProduct.id === id && savedProduct.quantity !== 0) {
+          return {
+            ...savedProduct,
+            quantity: savedProduct.quantity - 1,
+          };
+        }
+
+        if (savedProduct.id === id && savedProduct.quantity === 0) {
+          isQuantityZeroAndIndexElement = { index, isZero: true };
+        }
+
+        return savedProduct;
+      });
+
+      if (isQuantityZeroAndIndexElement.isZero) {
+        changedProduct = products.splice(
+          isQuantityZeroAndIndexElement.index,
+          1,
+        );
+      }
+
+      setProducts(changedProduct);
+    },
+    [products],
+  );
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
