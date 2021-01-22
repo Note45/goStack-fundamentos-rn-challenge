@@ -59,7 +59,7 @@ const CartProvider: React.FC = ({ children }) => {
       });
 
       if (!isProductSaved) {
-        setProducts([...changedProduct, { ...product, quantity: 0 }]);
+        setProducts([...changedProduct, { ...product, quantity: 1 }]);
         return;
       }
 
@@ -88,31 +88,33 @@ const CartProvider: React.FC = ({ children }) => {
 
   const decrement = useCallback(
     async id => {
-      let isQuantityZeroAndIndexElement = {
+      let isQuantityOneAndIndexElement = {
         index: -1,
-        isZero: false,
+        isOne: false,
       };
 
       let changedProduct = products.map((savedProduct, index) => {
-        if (savedProduct.id === id && savedProduct.quantity !== 0) {
+        if (savedProduct.id === id && savedProduct.quantity !== 1) {
           return {
             ...savedProduct,
             quantity: savedProduct.quantity - 1,
           };
         }
 
-        if (savedProduct.id === id && savedProduct.quantity === 0) {
-          isQuantityZeroAndIndexElement = { index, isZero: true };
+        if (savedProduct.id === id && savedProduct.quantity === 1) {
+          isQuantityOneAndIndexElement = { index, isOne: true };
         }
 
         return savedProduct;
       });
 
-      if (isQuantityZeroAndIndexElement.isZero) {
-        changedProduct = products.splice(
-          isQuantityZeroAndIndexElement.index,
-          1,
-        );
+      if (isQuantityOneAndIndexElement.isOne) {
+        changedProduct =
+          products.length === 1
+            ? []
+            : products.filter(
+                (_value, index) => index !== isQuantityOneAndIndexElement.index,
+              );
       }
 
       setProducts(changedProduct);
