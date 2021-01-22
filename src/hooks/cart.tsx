@@ -60,9 +60,17 @@ const CartProvider: React.FC = ({ children }) => {
 
       if (!isProductSaved) {
         setProducts([...changedProduct, { ...product, quantity: 1 }]);
+        await AsyncStorage.setItem(
+          '@GoStack:products',
+          JSON.stringify([...changedProduct, { ...product, quantity: 1 }]),
+        );
         return;
       }
 
+      await AsyncStorage.setItem(
+        '@GoStack:products',
+        JSON.stringify(changedProduct),
+      );
       setProducts(changedProduct);
     },
     [products],
@@ -81,6 +89,10 @@ const CartProvider: React.FC = ({ children }) => {
         return savedProduct;
       });
 
+      await AsyncStorage.setItem(
+        '@GoStack:products',
+        JSON.stringify(changedProduct),
+      );
       setProducts(changedProduct);
     },
     [products],
@@ -117,6 +129,10 @@ const CartProvider: React.FC = ({ children }) => {
               );
       }
 
+      await AsyncStorage.setItem(
+        '@GoStack:products',
+        JSON.stringify(changedProduct),
+      );
       setProducts(changedProduct);
     },
     [products],
